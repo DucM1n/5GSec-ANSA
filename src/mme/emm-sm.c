@@ -488,6 +488,9 @@ static void common_register_state(ogs_fsm_t *s, mme_event_t *e,
             ogs_info("[%s] Attach request", mme_ue->imsi_bcd);
             rv = emm_handle_attach_request(
                     enb_ue, mme_ue, &message->emm.attach_request, e->pkbuf);
+
+            // TODO: add fallback to 4G and remove authentication procedure
+            
             if (rv != OGS_OK) {
                 ogs_error("emm_handle_attach_request() failed");
                 MME_RESTORE_CONTEXT_ON_FAILURE(mme_ue, s);
@@ -502,12 +505,17 @@ static void common_register_state(ogs_fsm_t *s, mme_event_t *e,
                 break;
             }
 
-            if (h.integrity_protected && SECURITY_CONTEXT_IS_VALID(mme_ue)) {
+            // if (h.integrity_protected && SECURITY_CONTEXT_IS_VALID(mme_ue)) {
                 /*
                  * If the OLD ENB_UE is being maintained in MME-UE Context,
                  * it deletes the S1 Context after exchanging
                  * the UEContextReleaseCommand/Complete with the eNB
                  */
+                
+            /* Experimental: Force bypass authentication for srsUE testing */
+                 
+            if (1) {
+
                 CLEAR_S1_CONTEXT(mme_ue);
 
                 mme_gtp_send_delete_all_sessions(enb_ue, mme_ue,
@@ -532,19 +540,49 @@ static void common_register_state(ogs_fsm_t *s, mme_event_t *e,
 
                 OGS_FSM_TRAN(s, &emm_state_initial_context_setup);
 
-            } else {
-                mme_gtp_send_delete_all_sessions(enb_ue, mme_ue,
-                    OGS_GTP_DELETE_SEND_AUTHENTICATION_REQUEST);
+            } 
+            // else {
+            //     mme_gtp_send_delete_all_sessions(enb_ue, mme_ue,
+            //         OGS_GTP_DELETE_SEND_AUTHENTICATION_REQUEST);
 
+            //     if (!MME_SESSION_RELEASE_PENDING(mme_ue) &&
+            //         mme_ue_xact_count(mme_ue, OGS_GTP_LOCAL_ORIGINATOR) == 
+            //             xact_count) { mme_s6a_send_air(enb_ue, mme_ue, NULL);}
+
+            //     OGS_FSM_TRAN(s, &emm_state_authentication);
+
+            // }
+            else {
+                ogs_info("Authentication bypassed for experimental fallback");
+
+                /* Delete old sessions */
+                mme_gtp_send_delete_all_sessions(enb_ue, mme_ue,
+                    OGS_GTP_DELETE_HANDLE_PDN_CONNECTIVITY_REQUEST);
+
+                /* Directly process PDN connectivity */
                 if (!MME_SESSION_RELEASE_PENDING(mme_ue) &&
                     mme_ue_xact_count(mme_ue, OGS_GTP_LOCAL_ORIGINATOR) ==
                         xact_count) {
-                    mme_s6a_send_air(enb_ue, mme_ue, NULL);
+
+                    rv = nas_eps_send_emm_to_esm(mme_ue,
+                            &mme_ue->pdn_connectivity_request);
+
+                    if (rv != OGS_OK) {
+                        ogs_error("nas_eps_send_emm_to_esm() failed");
+
+                        r = nas_eps_send_attach_reject(enb_ue, mme_ue,
+                                OGS_NAS_EMM_CAUSE_PROTOCOL_ERROR_UNSPECIFIED,
+                                OGS_NAS_ESM_CAUSE_PROTOCOL_ERROR_UNSPECIFIED);
+
+                        MME_RESTORE_CONTEXT_ON_FAILURE(mme_ue, s);
+                        break;
+                    }
                 }
 
-                OGS_FSM_TRAN(s, &emm_state_authentication);
-
+                /* Skip authentication state */
+                OGS_FSM_TRAN(s, &emm_state_initial_context_setup);
             }
+
             break;
 
         case OGS_NAS_EPS_TRACKING_AREA_UPDATE_REQUEST:
@@ -1954,12 +1992,17 @@ void emm_state_exception(ogs_fsm_t *s, mme_event_t *e)
                 break;
             }
 
-            if (h.integrity_protected && SECURITY_CONTEXT_IS_VALID(mme_ue)) {
+            // if (h.integrity_protected && SECURITY_CONTEXT_IS_VALID(mme_ue)) {
                 /*
                  * If the OLD ENB_UE is being maintained in MME-UE Context,
                  * it deletes the S1 Context after exchanging
                  * the UEContextReleaseCommand/Complete with the eNB
                  */
+
+            /* Experimental: Force bypass authentication for srsUE testing */
+
+            if (1) {
+
                 CLEAR_S1_CONTEXT(mme_ue);
 
                 mme_gtp_send_delete_all_sessions(enb_ue, mme_ue,
