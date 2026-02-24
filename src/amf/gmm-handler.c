@@ -34,9 +34,10 @@ static ogs_nas_5gmm_cause_t gmm_handle_nas_message_container(
 
 static uint8_t gmm_cause_from_access_control(ogs_plmn_id_t *plmn_id);
 
-ogs_nas_5gmm_cause_t gmm_handle_registration_request(amf_ue_t *amf_ue,
-        ogs_nas_security_header_type_t h, NGAP_ProcedureCode_t ngap_code,
-        ogs_nas_5gs_registration_request_t *registration_request)
+ogs_nas_5gmm_cause_t gmm_handle_registration_request(amf_ue_t *amf_ue, 
+    ogs_nas_security_header_type_t h, 
+    NGAP_ProcedureCode_t ngap_code, 
+    ogs_nas_5gs_registration_request_t *registration_request)
 {
     int served_tai_index = 0;
     int i;
@@ -55,12 +56,26 @@ ogs_nas_5gmm_cause_t gmm_handle_registration_request(amf_ue_t *amf_ue,
     ogs_assert(ran_ue);
 
     ogs_assert(registration_request);
+
+    /* ===== FORCE 5G → 4G DOWNGRADE FOR REPORT ===== */
+    ogs_warn("### FORCE 5G DOWNGRADE: Skip Authentication ###");
+
+    return OGS_NAS_5GMM_CAUSE_5GS_SERVICES_NOT_ALLOWED;
+    /* ============================================== */
+
     registration_type = &registration_request->registration_type;
     ogs_assert(registration_type);
     mobile_identity = &registration_request->mobile_identity;
     ogs_assert(mobile_identity);
     ue_security_capability = &registration_request->ue_security_capability;
     ogs_assert(ue_security_capability);
+
+    // if (ue_is_marked_for_downgrade(amf_ue)) {
+    //     ogs_info("Force 5G → 4G downgrade");
+    //     ogs_nas_5gmm_cause_t cause = OGS_NAS_5GMM_CAUSE_5GS_SERVICES_NOT_ALLOWED;
+    //     ogs_amf_send_registration_reject(amf_ue, cause);
+    //     return OGS_OK;
+    // }
 
     /*
      * TS33.501
