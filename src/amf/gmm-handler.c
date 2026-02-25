@@ -57,12 +57,6 @@ ogs_nas_5gmm_cause_t gmm_handle_registration_request(amf_ue_t *amf_ue,
 
     ogs_assert(registration_request);
 
-    /* ===== FORCE 5G → 4G DOWNGRADE FOR REPORT ===== */
-    ogs_warn("### FORCE 5G DOWNGRADE: Skip Authentication ###");
-
-    return OGS_NAS_5GMM_CAUSE_5GS_SERVICES_NOT_ALLOWED;
-    /* ============================================== */
-
     registration_type = &registration_request->registration_type;
     ogs_assert(registration_type);
     mobile_identity = &registration_request->mobile_identity;
@@ -70,12 +64,11 @@ ogs_nas_5gmm_cause_t gmm_handle_registration_request(amf_ue_t *amf_ue,
     ue_security_capability = &registration_request->ue_security_capability;
     ogs_assert(ue_security_capability);
 
-    // if (ue_is_marked_for_downgrade(amf_ue)) {
-    //     ogs_info("Force 5G → 4G downgrade");
-    //     ogs_nas_5gmm_cause_t cause = OGS_NAS_5GMM_CAUSE_5GS_SERVICES_NOT_ALLOWED;
-    //     ogs_amf_send_registration_reject(amf_ue, cause);
-    //     return OGS_OK;
-    // }
+    /* ===== FORCE 5G → 4G DOWNGRADE FOR REPORT ===== */
+    ogs_warn("### FORCE 5G DOWNGRADE: Skip Authentication ###");
+
+    return OGS_NAS_5GMM_CAUSE_5GS_SERVICES_NOT_ALLOWED;
+    /* ============================================== */
 
     /*
      * TS33.501
