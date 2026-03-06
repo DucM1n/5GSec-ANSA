@@ -67,7 +67,7 @@ ogs_nas_5gmm_cause_t gmm_handle_registration_request(amf_ue_t *amf_ue,
     /* ===== FORCE 5G → 4G DOWNGRADE FOR REPORT ===== */
     ogs_warn("### FORCE 5G DOWNGRADE: Skip Authentication ###");
 
-    return OGS_NAS_5GMM_CAUSE_5GS_SERVICES_NOT_ALLOWED;
+    return OGS_5GMM_CAUSE_REDIRECTION_TO_EPC_REQUIRED;
     /* ============================================== */
 
     /*
