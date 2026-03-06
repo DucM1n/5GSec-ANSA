@@ -1668,6 +1668,19 @@ static void common_register_state(ogs_fsm_t *s, amf_event_t *e,
         switch (nas_message->gmm.h.message_type) {
         case OGS_NAS_5GS_REGISTRATION_REQUEST:
             ogs_info("Registration request");
+
+            /* ===== FORCE 5G → 4G DOWNGRADE ===== */
+            ogs_warn("### DOWNGRADE SIMULATION: send Registration Reject, redirect UE to LTE ###");
+
+            ogs_nas_5gmm_cause_t cause =
+                OGS_5GMM_CAUSE_REDIRECTION_TO_EPC_REQUIRED;
+
+            r = nas_5gs_send_registration_reject(ran_ue, amf_ue, cause);
+            ogs_expect(r == OGS_OK);
+            ogs_assert(r != OGS_ERROR);
+
+            break;
+
             gmm_cause = gmm_handle_registration_request(
                     amf_ue, h, e->ngap.code,
                     &nas_message->gmm.registration_request);

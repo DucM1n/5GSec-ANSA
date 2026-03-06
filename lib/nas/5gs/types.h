@@ -190,7 +190,7 @@ ED7(uint8_t spare1:2;,
 #define OGS_5GMM_CAUSE_PROTOCOL_ERROR_UNSPECIFIED 111
 
 /* Custom cause value for testing */
-#define OGS_NAS_5GMM_CAUSE_5GS_SERVICES_NOT_ALLOWED 200
+// #define OGS_NAS_5GMM_CAUSE_5GS_SERVICES_NOT_ALLOWED 200
 
 typedef uint8_t ogs_nas_5gmm_cause_t;
 
